@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
@@ -28,9 +29,11 @@ func main() {
 	var maxAge string
 	var dryRun bool
 	var silent bool
+	var extractLinks string
 	flag.StringVar(&maxAge, "max-age", "1 month", "The max age tweets to keep (e.g. 1 day, 2 weeks, 3 months, 4 years)")
 	flag.BoolVar(&dryRun, "dry-run", false, "Performs a dry run that only outputs a log summary.")
 	flag.BoolVar(&silent, "silent", false, "Silences all log summary output.")
+	flag.StringVar(&extractLinks, "extract-links", "", "A text file to extract links from deleted tweets to.")
 	flag.Parse()
 
 	if maxAge == "" {
@@ -46,6 +49,14 @@ func main() {
 	writer = os.Stdout
 	if !dryRun && silent {
 		writer = ioutil.Discard
+	}
+
+	var linksFile io.Writer
+	if extractLinks != "" {
+		linksFile, err = os.OpenFile(extractLinks, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			log.Fatalf("invalid extract link file: %s", err)
+		}
 	}
 
 	client := &hermit.Client{
@@ -71,6 +82,13 @@ func main() {
 		if len(filteredTweets) == 0 {
 			tweetMaxID = hermit.GetMaxID(tweets) - 1
 			continue
+		}
+
+		if linksFile != nil {
+			links := util.FollowLinkRedirects(util.ExtractLinks(filteredTweets))
+			if len(links) > 0 {
+				fmt.Fprintf(linksFile, strings.Join(links, "\n")+"\n")
+			}
 		}
 
 		err = client.DestroyTweets(filteredTweets)
@@ -105,6 +123,13 @@ func main() {
 		if len(filteredTweets) == 0 {
 			favouriteMaxID = hermit.GetMaxID(tweets) - 1
 			continue
+		}
+
+		if linksFile != nil {
+			links := util.FollowLinkRedirects(util.ExtractLinks(filteredTweets))
+			if len(links) > 0 {
+				fmt.Fprintf(linksFile, strings.Join(links, "\n")+"\n")
+			}
 		}
 
 		err = client.DestroyFavourites(filteredTweets)

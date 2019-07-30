@@ -9,4 +9,5 @@ require (
 	github.com/dghubble/sling v1.2.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
+	mvdan.cc/xurls/v2 v2.0.0
 )
