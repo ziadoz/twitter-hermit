@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
+	"github.com/ziadoz/twitter-hermit/pkg/links"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
 
@@ -85,7 +86,7 @@ func main() {
 		}
 
 		if linksFile != nil {
-			links := util.FollowLinkRedirects(util.ExtractLinks(filteredTweets))
+			links := links.FollowRedirects(links.Extract(filteredTweets))
 			if len(links) > 0 {
 				fmt.Fprintf(linksFile, strings.Join(links, "\n")+"\n")
 			}
@@ -126,7 +127,7 @@ func main() {
 		}
 
 		if linksFile != nil {
-			links := util.FollowLinkRedirects(util.ExtractLinks(filteredTweets))
+			links := links.FollowRedirects(links.Extract(filteredTweets))
 			if len(links) > 0 {
 				fmt.Fprintf(linksFile, strings.Join(links, "\n")+"\n")
 			}
