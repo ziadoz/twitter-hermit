@@ -3,119 +3,80 @@ package hermit
 import (
 	"fmt"
 	"io"
-	"log"
+	"strings"
 	"time"
+	"unicode/utf8"
 
-	"github.com/dghubble/go-twitter/twitter"
+	"github.com/ziadoz/twitter-hermit/pkg/links"
+	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
 
-var logFormat string = " - ID:   %d\n   Date: %s\n   Text: %s\n"
+const batchSize = 200
 
-type Client struct {
-	Twitter *twitter.Client
-	Writer  io.Writer
-	DryRun  bool
+type Destroyer struct {
+	Output io.Writer // Output is written to this.
+	Links  io.Writer // Extracted links are written to this.
 }
 
-type QueryParams struct {
-	Count int
-	MaxID int64
-}
+func (d *Destroyer) Destroy(repo twitter.Repository, maxAge time.Time, dryRun bool) error {
+	header := fmt.Sprintf("Destroying %s", strings.Title(repo.Description()))
+	fmt.Fprintln(d.Output, header)
+	fmt.Fprintln(d.Output, strings.Repeat("=", utf8.RuneCountInString(header)))
 
-func (c *Client) GetUserTweets(params QueryParams) ([]twitter.Tweet, error) {
-	tweets, _, err := c.Twitter.Timelines.UserTimeline(&twitter.UserTimelineParams{
-		Count:           params.Count,
-		MaxID:           params.MaxID,
-		IncludeRetweets: twitter.Bool(true),
-		TrimUser:        twitter.Bool(true),
-	})
+	var maxID int64
+	var deletedCount int
 
-	if err != nil {
-		return nil, err
-	}
+	for {
+		tweets, err := repo.Get(twitter.QueryParams{Count: batchSize, MaxID: maxID})
+		if err != nil {
+			return fmt.Errorf("could not get user %s: %s\n", repo.Description(), err)
+		}
 
-	return tweets, nil
-}
+		if len(tweets) == 0 {
+			break // We're done deleting.
+		}
 
-func (c *Client) DestroyTweets(tweets []twitter.Tweet) error {
-	for _, tweet := range tweets {
-		if !c.DryRun {
-			_, _, err := c.Twitter.Statuses.Destroy(tweet.ID, &twitter.StatusDestroyParams{
-				TrimUser: twitter.Bool(true),
-			})
+		filteredTweets := twitter.FilterTweets(tweets, maxAge)
+		if len(filteredTweets) == 0 {
+			maxID = twitter.GetMaxID(tweets) - 1
+			continue
+		}
 
-			if err != nil {
-				return fmt.Errorf("Failed to delete tweet %s", err)
+		if d.Links != nil {
+			links := links.FollowRedirects(links.Extract(filteredTweets))
+			if len(links) > 0 {
+				fmt.Fprintf(d.Links, strings.Join(links, "\n")+"\n")
 			}
 		}
 
-		createdAt, _ := tweet.CreatedAtTime()
-		fmt.Fprintf(
-			c.Writer,
-			logFormat,
-			tweet.ID,
-			createdAt.Format("2 Jan 2006 03:04pm"),
-			util.StripNewlines(tweet.Text),
-		)
-	}
-
-	return nil
-}
-
-func (c *Client) GetUserFavourites(params QueryParams) ([]twitter.Tweet, error) {
-	favorites, _, err := c.Twitter.Favorites.List(&twitter.FavoriteListParams{
-		Count: params.Count,
-		MaxID: params.MaxID,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return favorites, nil
-}
-
-func (c *Client) DestroyFavourites(favourites []twitter.Tweet) error {
-	for _, favourite := range favourites {
-		if !c.DryRun {
-			_, _, err := c.Twitter.Favorites.Destroy(&twitter.FavoriteDestroyParams{
-				ID: favourite.ID,
-			})
-
+		if !dryRun {
+			err = repo.Destroy(filteredTweets)
 			if err != nil {
-				log.Printf("Error: Failed to delete favourite %s", err)
+				return fmt.Errorf("could not get user %s: %s\n", repo.Description(), err)
 			}
 		}
 
-		createdAt, _ := favourite.CreatedAtTime()
-		fmt.Fprintf(
-			c.Writer,
-			logFormat,
-			favourite.ID,
-			createdAt.Format("2 Jan 2006 03:04pm"),
-			util.StripNewlines(favourite.Text),
-		)
+		for _, tweet := range filteredTweets {
+			createdAt, _ := tweet.CreatedAtTime()
+			fmt.Fprintf(
+				d.Output,
+				" - ID:   %d\n   Date: %s\n   Text: %s\n",
+				tweet.ID,
+				createdAt.Format("2 Jan 2006 03:04pm"),
+				util.StripNewlines(tweet.Text),
+			)
+		}
+
+		deletedCount += len(filteredTweets)
+		maxID = twitter.GetMaxID(tweets) - 1
+	}
+
+	if deletedCount > 0 {
+		fmt.Fprintf(d.Output, "Deleted %d %s successfully!\n", deletedCount, repo.Description())
+	} else {
+		fmt.Fprintf(d.Output, "No %s needed deleting.\n", repo.Description())
 	}
 
 	return nil
-}
-
-// Filter out tweets that are newer than the max age time.Time.
-func FilterTweets(tweets []twitter.Tweet, maxAge time.Time) []twitter.Tweet {
-	var filtered = make([]twitter.Tweet, 0)
-
-	for _, tweet := range tweets {
-		createdAt, _ := tweet.CreatedAtTime()
-		if createdAt.Before(maxAge) {
-			filtered = append(filtered, tweet)
-		}
-	}
-
-	return filtered
-}
-
-// Return the MaxID (last tweet's ID) from a slice of tweets.
-func GetMaxID(tweets []twitter.Tweet) int64 {
-	return tweets[len(tweets)-1].ID
 }

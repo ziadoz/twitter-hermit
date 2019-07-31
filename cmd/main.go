@@ -7,14 +7,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
-	"github.com/ziadoz/twitter-hermit/pkg/links"
+	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
-
-const batchSize = 200
 
 // Development Links
 // https://developer.twitter.com/en/docs/api-reference-index
@@ -46,10 +43,10 @@ func main() {
 		log.Fatalf("invalid max age flag: %s\n", err)
 	}
 
-	var writer io.Writer
-	writer = os.Stdout
+	var logger io.Writer
+	logger = os.Stdout
 	if !dryRun && silent {
-		writer = ioutil.Discard
+		logger = ioutil.Discard
 	}
 
 	var linksFile io.Writer
@@ -60,91 +57,21 @@ func main() {
 		}
 	}
 
-	client := &hermit.Client{
-		Twitter: util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret),
-		Writer:  writer,
-		DryRun:  dryRun,
+	client := util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+	destroyer := &hermit.Destroyer{
+		Output: logger,
+		Links:  linksFile,
 	}
 
-	fmt.Println("[Deleting Tweets]")
-	var tweetMaxID int64
-	var tweetDeletedCount int
-	for {
-		tweets, err := client.GetUserTweets(hermit.QueryParams{Count: batchSize, MaxID: tweetMaxID})
-		if err != nil {
-			log.Fatalf("could not get user tweets: %s\n", err)
-		}
-
-		if len(tweets) == 0 {
-			break // We're done deleting.
-		}
-
-		filteredTweets := hermit.FilterTweets(tweets, maxAgeTime)
-		if len(filteredTweets) == 0 {
-			tweetMaxID = hermit.GetMaxID(tweets) - 1
-			continue
-		}
-
-		if linksFile != nil {
-			links := links.FollowRedirects(links.Extract(filteredTweets))
-			if len(links) > 0 {
-				fmt.Fprintf(linksFile, strings.Join(links, "\n")+"\n")
-			}
-		}
-
-		err = client.DestroyTweets(filteredTweets)
-		if err != nil {
-			log.Fatalf("could not delete tweets: %s\n", err)
-		}
-
-		tweetDeletedCount += len(filteredTweets)
-		tweetMaxID = hermit.GetMaxID(tweets) - 1
+	tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client}, maxAgeTime, dryRun)
+	if tweetErr != nil {
+		log.Fatal(tweetErr)
 	}
+	fmt.Println()
 
-	if tweetDeletedCount > 0 {
-		fmt.Printf("Deleted %d tweets successfully\n\n", tweetDeletedCount)
-	} else {
-		fmt.Printf("No tweets needed deleting\n\n")
+	favouriteErr := destroyer.Destroy(&twitter.UserFavourites{Twitter: client}, maxAgeTime, dryRun)
+	if favouriteErr != nil {
+		log.Fatal(favouriteErr)
 	}
-
-	fmt.Println("[Deleting Favourites]")
-	var favouriteMaxID int64
-	var favouriteDeletedCount int
-	for {
-		tweets, err := client.GetUserFavourites(hermit.QueryParams{Count: batchSize, MaxID: favouriteMaxID})
-		if err != nil {
-			log.Fatalf("could not get user tweets: %s\n", err)
-		}
-
-		if len(tweets) == 0 {
-			break // We're done deleting.
-		}
-
-		filteredTweets := hermit.FilterTweets(tweets, maxAgeTime)
-		if len(filteredTweets) == 0 {
-			favouriteMaxID = hermit.GetMaxID(tweets) - 1
-			continue
-		}
-
-		if linksFile != nil {
-			links := links.FollowRedirects(links.Extract(filteredTweets))
-			if len(links) > 0 {
-				fmt.Fprintf(linksFile, strings.Join(links, "\n")+"\n")
-			}
-		}
-
-		err = client.DestroyFavourites(filteredTweets)
-		if err != nil {
-			log.Fatalf("could not delete favourites: %s\n", err)
-		}
-
-		favouriteDeletedCount += len(filteredTweets)
-		favouriteMaxID = hermit.GetMaxID(tweets) - 1
-	}
-
-	if favouriteDeletedCount > 0 {
-		fmt.Printf("Deleted %d favourites successfully\n\n", favouriteDeletedCount)
-	} else {
-		fmt.Printf("No tweets favourites deleting\n\n")
-	}
+	fmt.Println()
 }
