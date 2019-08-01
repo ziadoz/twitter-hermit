@@ -15,7 +15,7 @@ import (
 const batchSize = 200
 
 type Destroyer struct {
-	MaxAge time.Time // The mag age to filter out tweets for deletion.
+	MaxAge time.Time // The max age to filter out tweets for deletion.
 	DryRun bool      // Whether or not the deletion should be a dry run.
 	Output io.Writer // Output is written to this.
 	Links  io.Writer // Extracted links are written to this.
