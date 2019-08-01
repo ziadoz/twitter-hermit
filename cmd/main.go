@@ -59,17 +59,19 @@ func main() {
 
 	client := util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 	destroyer := &hermit.Destroyer{
+		MaxAge: maxAgeTime,
+		DryRun: dryRun,
 		Output: logger,
 		Links:  linksFile,
 	}
 
-	tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client}, maxAgeTime, dryRun)
+	tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client})
 	if tweetErr != nil {
 		log.Fatal(tweetErr)
 	}
 	fmt.Println()
 
-	favouriteErr := destroyer.Destroy(&twitter.UserFavourites{Twitter: client}, maxAgeTime, dryRun)
+	favouriteErr := destroyer.Destroy(&twitter.UserFavourites{Twitter: client})
 	if favouriteErr != nil {
 		log.Fatal(favouriteErr)
 	}

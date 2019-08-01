@@ -15,11 +15,13 @@ import (
 const batchSize = 200
 
 type Destroyer struct {
+	MaxAge time.Time // The mag age to filter out tweets for deletion.
+	DryRun bool      // Whether or not the deletion should be a dry run.
 	Output io.Writer // Output is written to this.
 	Links  io.Writer // Extracted links are written to this.
 }
 
-func (d *Destroyer) Destroy(repo twitter.Repository, maxAge time.Time, dryRun bool) error {
+func (d *Destroyer) Destroy(repo twitter.Repository) error {
 	header := fmt.Sprintf("Destroying %s", strings.Title(repo.Description()))
 	fmt.Fprintln(d.Output, header)
 	fmt.Fprintln(d.Output, strings.Repeat("=", utf8.RuneCountInString(header)))
@@ -37,7 +39,7 @@ func (d *Destroyer) Destroy(repo twitter.Repository, maxAge time.Time, dryRun bo
 			break // We're done deleting.
 		}
 
-		filteredTweets := twitter.FilterTweets(tweets, maxAge)
+		filteredTweets := twitter.FilterTweets(tweets, d.MaxAge)
 		if len(filteredTweets) == 0 {
 			maxID = twitter.GetMaxID(tweets) - 1
 			continue
@@ -50,7 +52,7 @@ func (d *Destroyer) Destroy(repo twitter.Repository, maxAge time.Time, dryRun bo
 			}
 		}
 
-		if !dryRun {
+		if !d.DryRun {
 			err = repo.Destroy(filteredTweets)
 			if err != nil {
 				return fmt.Errorf("could not get user %s: %s\n", repo.Description(), err)
