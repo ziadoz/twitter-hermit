@@ -33,6 +33,7 @@ func (t *UserTweets) Get(params QueryParams) ([]twitter.Tweet, error) {
 		Count:           params.Count,
 		MaxID:           params.MaxID,
 		IncludeRetweets: twitter.Bool(true),
+		ExcludeReplies:  twitter.Bool(false),
 		TrimUser:        twitter.Bool(true),
 	})
 
