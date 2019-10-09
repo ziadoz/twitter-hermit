@@ -3,6 +3,7 @@ package hermit
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -44,6 +45,13 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 			maxID = twitter.GetMaxID(tweets) - 1
 			continue
 		}
+
+		for _, filteredTweet := range filteredTweets {
+			if filteredTweet.ExtendedEntities != nil {
+				fmt.Printf("%+v\n", filteredTweet.ExtendedEntities)
+			}
+		}
+		os.Exit(1)
 
 		if d.Links != nil {
 			links := links.FollowRedirects(links.Extract(filteredTweets))
