@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
+	"github.com/ziadoz/twitter-hermit/pkg/pathflag"
 	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
@@ -28,10 +29,12 @@ func main() {
 	var dryRun bool
 	var silent bool
 	var saveLinks string
+	var saveMedia pathflag.Path
 	flag.StringVar(&maxAge, "max-age", "1 month", "The max age tweets to keep (e.g. 1 day, 2 weeks, 3 months, 4 years)")
 	flag.BoolVar(&dryRun, "dry-run", false, "Perform a dry run that only outputs a log summary")
 	flag.BoolVar(&silent, "silent", false, "Silence all log summary output")
 	flag.StringVar(&saveLinks, "save-links", "", "A text file to save links to")
+	flag.Var(&saveMedia, "save-media", "A directory to save media content to")
 	flag.Parse()
 
 	if maxAge == "" {
@@ -57,19 +60,25 @@ func main() {
 		}
 	}
 
-	client := util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
-	destroyer := &hermit.Destroyer{
-		MaxAge: maxAgeTime,
-		DryRun: dryRun,
-		Output: logger,
-		Links:  linksFile,
+	mediaDir := ""
+	if saveMedia.Path != "" {
+		mediaDir = saveMedia.Path
 	}
 
-	tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client})
-	if tweetErr != nil {
-		log.Fatal(tweetErr)
+	client := util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+	destroyer := &hermit.Destroyer{
+		MaxAge:   maxAgeTime,
+		DryRun:   dryRun,
+		Output:   logger,
+		Links:    linksFile,
+		MediaDir: mediaDir,
 	}
-	fmt.Println()
+
+	// tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client})
+	// if tweetErr != nil {
+	// 	log.Fatal(tweetErr)
+	// }
+	// fmt.Println()
 
 	favouriteErr := destroyer.Destroy(&twitter.UserFavourites{Twitter: client})
 	if favouriteErr != nil {
