@@ -21,9 +21,9 @@ If you don't care about the summary you can use the `--silent` flag to suppress 
 twitter-hermit --max-age="1 month" --silent
 ```
 
-Hermit can also extract links from any tweets into a file before it deletes them with the `--extract-links` flags:
+Hermit can also save links from any tweets into a file before it deletes them with the `--save-links` flags:
 ```
-twitter-hermit --max-age="1 month" --extract-links="./links.txt"
+twitter-hermit --max-age="1 month" --save-links="./links.txt"
 ```
 
 For convience a `env.sh.sample` file is provided. You should rename this to `env.sh`, enter your credentials into it, specify your preferred flags, and then run it: `./env.sh`
