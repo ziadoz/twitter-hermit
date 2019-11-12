@@ -20,10 +20,8 @@ func (path *Path) String() string {
 }
 
 // Set the value of Path.
-// Expand home directory if applicable.
-// Make path absolute.
-// Ensure file or directory is readable and writeable.
 func (path *Path) Set(val string) error {
+	// Expand home directory if applicable.
 	if strings.HasPrefix(val, "~") {
 		user, err := user.Current()
 		if err != nil {
@@ -33,11 +31,13 @@ func (path *Path) Set(val string) error {
 		val = filepath.Join(user.HomeDir, val[2:])
 	}
 
+	// Make path absolute.
 	val, err := filepath.Abs(val)
 	if err != nil {
 		return err
 	}
 
+	// Ensure file or directory is readable and writeable.
 	fileinfo, err := os.Stat(val)
 	if err != nil {
 		return err

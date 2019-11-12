@@ -10,6 +10,7 @@ import (
 
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
 	"github.com/ziadoz/twitter-hermit/pkg/pathflag"
+	"github.com/ziadoz/twitter-hermit/pkg/saver"
 	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
@@ -28,13 +29,15 @@ func main() {
 	var maxAge string
 	var dryRun bool
 	var silent bool
-	var saveLinks string
-	var saveMedia pathflag.Path
+	var saveDir pathflag.Path
+	var saveJson bool
+	var saveMedia bool
 	flag.StringVar(&maxAge, "max-age", "1 month", "The max age tweets to keep (e.g. 1 day, 2 weeks, 3 months, 4 years)")
+	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
+	flag.BoolVar(&saveJson, "save-json", true, "Save tweet JSON?")
+	flag.BoolVar(&saveMedia, "save-media", true, "Save tweet media?")
 	flag.BoolVar(&dryRun, "dry-run", false, "Perform a dry run that only outputs a log summary")
 	flag.BoolVar(&silent, "silent", false, "Silence all log summary output")
-	flag.StringVar(&saveLinks, "save-links", "", "A text file to save links to")
-	flag.Var(&saveMedia, "save-media", "A directory to save media content to")
 	flag.Parse()
 
 	if maxAge == "" {
@@ -52,33 +55,25 @@ func main() {
 		logger = ioutil.Discard
 	}
 
-	var linksFile io.Writer
-	if saveLinks != "" {
-		linksFile, err = os.OpenFile(saveLinks, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-		if err != nil {
-			log.Fatalf("invalid extract link file: %s", err)
-		}
-	}
-
-	mediaDir := ""
-	if saveMedia.Path != "" {
-		mediaDir = saveMedia.Path
+	saver := &saver.TweetSaver{
+		SaveDir:   saveDir.Path,
+		SaveJson:  saveJson,
+		SaveMedia: saveMedia,
 	}
 
 	client := util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 	destroyer := &hermit.Destroyer{
-		MaxAge:   maxAgeTime,
-		DryRun:   dryRun,
-		Output:   logger,
-		Links:    linksFile,
-		MediaDir: mediaDir,
+		MaxAge:     maxAgeTime,
+		DryRun:     dryRun,
+		Output:     logger,
+		TweetSaver: saver,
 	}
 
-	// tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client})
-	// if tweetErr != nil {
-	// 	log.Fatal(tweetErr)
-	// }
-	// fmt.Println()
+	tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client})
+	if tweetErr != nil {
+		log.Fatal(tweetErr)
+	}
+	fmt.Println()
 
 	favouriteErr := destroyer.Destroy(&twitter.UserFavourites{Twitter: client})
 	if favouriteErr != nil {

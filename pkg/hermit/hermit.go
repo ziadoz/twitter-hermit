@@ -3,13 +3,11 @@ package hermit
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/ziadoz/twitter-hermit/pkg/links"
-	"github.com/ziadoz/twitter-hermit/pkg/media"
+	"github.com/ziadoz/twitter-hermit/pkg/saver"
 	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
@@ -17,11 +15,10 @@ import (
 const batchSize = 200
 
 type Destroyer struct {
-	MaxAge   time.Time // The max age to filter out tweets for deletion.
-	DryRun   bool      // Whether or not the deletion should be a dry run.
-	Output   io.Writer // Output is written to this.
-	Links    io.Writer // Saved links are written to this.
-	MediaDir string    // Saved media is written here.
+	MaxAge     time.Time         // The max age to filter out tweets for deletion.
+	DryRun     bool              // Whether or not the deletion should be a dry run.
+	Output     io.Writer         // Output is written to this.
+	TweetSaver *saver.TweetSaver // Handle saving tweet content.
 }
 
 func (d *Destroyer) Destroy(repo twitter.Repository) error {
@@ -48,20 +45,13 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 			continue
 		}
 
-		if d.Links != nil {
-			links := links.FollowRedirects(links.Extract(filteredTweets))
-			if len(links) > 0 {
-				fmt.Fprintf(d.Links, strings.Join(links, "\n")+"\n")
+		if d.TweetSaver != nil {
+			for _, tweet := range filteredTweets {
+				if err := d.TweetSaver.Save(tweet); err != nil {
+					return fmt.Errorf("could not save tweet '%d' content: %s", tweet.ID, err)
+				}
 			}
 		}
-
-		if d.MediaDir != "" {
-			medias := media.Extract(filteredTweets)
-			if len(medias) > 0 {
-				media.Save(d.MediaDir, medias)
-			}
-		}
-		os.Exit(1)
 
 		if !d.DryRun {
 			err = repo.Destroy(filteredTweets)
