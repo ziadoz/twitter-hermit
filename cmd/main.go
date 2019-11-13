@@ -19,6 +19,19 @@ import (
 // https://developer.twitter.com/en/docs/api-reference-index
 // https://developer.twitter.com/en/docs/tweets/timelines/guides/working-with-timelines.html
 func main() {
+	run()
+}
+
+var (
+	maxAge    string
+	dryRun    bool
+	silent    bool
+	saveDir   pathflag.Path
+	saveJson  bool
+	saveMedia bool
+)
+
+func run() {
 	log.SetFlags(0)
 
 	consumerKey := util.GetRequiredEnv("TWITTER_CONSUMER_KEY")
@@ -26,12 +39,6 @@ func main() {
 	accessToken := util.GetRequiredEnv("TWITTER_ACCESS_TOKEN")
 	accessTokenSecret := util.GetRequiredEnv("TWITTER_ACCESS_TOKEN_SECRET")
 
-	var maxAge string
-	var dryRun bool
-	var silent bool
-	var saveDir pathflag.Path
-	var saveJson bool
-	var saveMedia bool
 	flag.StringVar(&maxAge, "max-age", "1 month", "The max age tweets to keep (e.g. 1 day, 2 weeks, 3 months, 4 years)")
 	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
 	flag.BoolVar(&saveJson, "save-json", true, "Save tweet JSON?")
