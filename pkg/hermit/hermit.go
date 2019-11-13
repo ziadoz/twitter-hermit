@@ -3,13 +3,14 @@ package hermit
 import (
 	"fmt"
 	"io"
-	"strings"
+	"strconv"
 	"time"
-	"unicode/utf8"
 
 	"github.com/ziadoz/twitter-hermit/pkg/saver"
 	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 const batchSize = 200
@@ -22,9 +23,10 @@ type Destroyer struct {
 }
 
 func (d *Destroyer) Destroy(repo twitter.Repository) error {
-	header := fmt.Sprintf("Destroying %s", strings.Title(repo.Description()))
-	fmt.Fprintln(d.Output, header)
-	fmt.Fprintln(d.Output, strings.Repeat("=", utf8.RuneCountInString(header)))
+	table := tablewriter.NewWriter(d.Output)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetRowLine(true)
+	table.SetHeader([]string{"ID", "Date", "Tweet"})
 
 	var maxID int64
 	var deletedCount int
@@ -36,7 +38,7 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 		}
 
 		if len(tweets) == 0 {
-			break // We're done deleting.
+			break
 		}
 
 		filteredTweets := twitter.FilterTweets(tweets, d.MaxAge)
@@ -60,25 +62,25 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 			}
 		}
 
+		rows := make([][]string, 0, len(filteredTweets))
 		for _, tweet := range filteredTweets {
 			createdAt, _ := tweet.CreatedAtTime()
-			fmt.Fprintf(
-				d.Output,
-				" - ID:   %d\n   Date: %s\n   Text: %s\n",
-				tweet.ID,
+			rows = append(rows, []string{
+				strconv.FormatInt(tweet.ID, 10),
 				createdAt.Format("2 Jan 2006 03:04pm"),
 				util.StripNewlines(tweet.Text),
-			)
+			})
 		}
+
+		table.AppendBulk(rows)
 
 		deletedCount += len(filteredTweets)
 		maxID = twitter.GetMaxID(tweets) - 1
 	}
 
 	if deletedCount > 0 {
-		fmt.Fprintf(d.Output, "Deleted %d %s successfully!\n", deletedCount, repo.Description())
-	} else {
-		fmt.Fprintf(d.Output, "No %s needed deleting.\n", repo.Description())
+		table.SetFooter([]string{"", repo.Description(), strconv.Itoa(deletedCount)})
+		table.Render()
 	}
 
 	return nil
