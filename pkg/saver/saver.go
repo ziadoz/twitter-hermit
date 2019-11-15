@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"strconv"
 
@@ -19,12 +18,6 @@ type TweetSaver struct {
 
 func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 	tweetId := strconv.FormatInt(tweet.ID, 10)
-	dir := path.Join(ts.SaveDir, tweetId)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0744); err != nil {
-			return fmt.Errorf("could not create tweet directory: %s", err)
-		}
-	}
 
 	if ts.SaveJson {
 		bytes, err := json.MarshalIndent(tweet, "", "    ")
@@ -32,13 +25,29 @@ func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 			return fmt.Errorf("could not marshal tweet JSON: %s", err)
 		}
 
-		if err := ioutil.WriteFile(path.Join(dir, "tweet.json"), bytes, 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(ts.SaveDir, tweetId+".json"), bytes, 0644); err != nil {
 			return fmt.Errorf("could not write JSON file: %s", err)
 		}
 	}
 
+	// @todo: Save files in concurrency.
 	if ts.SaveMedia {
-		saveMedia(dir, extractMedia(tweet))
+		num := 1
+		for _, media := range extractMedia(tweet) {
+			ext, err := getExtensionFromURL(media)
+			if err != nil {
+				return fmt.Errorf("could not save tweet ID %s media: %s", tweetId, media)
+			}
+
+			// Possibly an m3u8 file
+			// https://gerardnico.com/video/m3u
+			if ext == "" {
+				continue
+			}
+
+			saveMediaFromURL(media, path.Join(ts.SaveDir, tweetId+"-"+strconv.Itoa(num)+ext))
+			num++
+		}
 	}
 
 	return nil

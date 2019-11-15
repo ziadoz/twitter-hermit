@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"sync"
 
 	"github.com/dghubble/go-twitter/twitter"
 )
@@ -33,42 +32,14 @@ func extractMedia(tweet twitter.Tweet) []string {
 	return links
 }
 
-// Save media links to a directory.
-// @todo: REFACTOR GOROUTINES TO WORK PROPERLY.
-func saveMedia(dir string, links []string) {
-	sem := make(chan struct{}, 20)
-	var wg sync.WaitGroup
-
-	for _, link := range links {
-		wg.Add(1)
-		go func(dir, link string) {
-			defer wg.Done()
-			sem <- struct{}{}
-			dest, err := getFileNameFromURL(link)
-			if err != nil {
-				// @todo: HANDLE ERROR.
-			}
-
-			_, err = saveMediaFromURL(link, path.Join(dir, dest))
-			if err != nil {
-				// @todo: HANDLE ERROR.
-			}
-			<-sem
-		}(dir, link)
-	}
-
-	wg.Wait()
-	close(sem)
-}
-
-// Determine the filename from a URL.
-func getFileNameFromURL(src string) (string, error) {
-	parts, err := url.Parse(src)
+// Determine the extension from a URL.
+func getExtensionFromURL(link string) (string, error) {
+	parts, err := url.Parse(link)
 	if err != nil {
-		return "", fmt.Errorf("could not get filename from URL: %s", err)
+		return "", fmt.Errorf("could not get extension from URL: %s", err)
 	}
 
-	return path.Base(parts.Path), nil
+	return path.Ext(parts.Path), nil
 }
 
 // Save media file from a URL.
