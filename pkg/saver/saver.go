@@ -30,19 +30,12 @@ func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 		}
 	}
 
-	// @todo: Save files in concurrency.
 	if ts.SaveMedia {
 		num := 1
 		for _, media := range extractMedia(tweet) {
 			ext, err := getExtensionFromURL(media)
 			if err != nil {
 				return fmt.Errorf("could not save tweet ID %s media: %s", tweetId, media)
-			}
-
-			// Possibly an m3u8 file
-			// https://gerardnico.com/video/m3u
-			if ext == "" {
-				continue
 			}
 
 			saveMediaFromURL(media, path.Join(ts.SaveDir, tweetId+"-"+strconv.Itoa(num)+ext))
