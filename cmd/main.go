@@ -7,7 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
+	"time"
 
+	"github.com/karrick/tparse"
 	"github.com/ziadoz/twitter-hermit/pkg/data"
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
 	"github.com/ziadoz/twitter-hermit/pkg/pathflag"
@@ -42,7 +45,7 @@ func run() {
 	accessToken := util.GetRequiredEnv("TWITTER_ACCESS_TOKEN")
 	accessTokenSecret := util.GetRequiredEnv("TWITTER_ACCESS_TOKEN_SECRET")
 
-	flag.StringVar(&maxAge, "max-age", "1 month", "The max age tweets to keep (e.g. 1 day, 2 weeks, 3 months, 4 years)")
+	flag.StringVar(&maxAge, "max-age", "-1month", "The max age of tweets to keep (e.g. -1day, -2weeks, -3months, -4years)")
 	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
 	flag.BoolVar(&saveJson, "save-json", true, "Save tweet JSON?")
 	flag.BoolVar(&saveMedia, "save-media", true, "Save tweet media?")
@@ -50,11 +53,12 @@ func run() {
 	flag.BoolVar(&silent, "silent", false, "Silence all log summary output")
 	flag.Parse()
 
-	if maxAge == "" {
+	if maxAge == "" || strings.IndexRune(maxAge, '-') != 0 {
 		log.Fatal("missing max-age flag")
 	}
 
-	maxAgeTime, err := util.ParseMaxAge(maxAge)
+	now := time.Now()
+	maxAgeTime, err := tparse.AddDuration(now, maxAge)
 	if err != nil {
 		log.Fatalf("invalid max age flag: %s\n", err)
 	}
@@ -81,6 +85,7 @@ func run() {
 
 	fmt.Fprintln(logger, "Twitter Hermit")
 	fmt.Fprintln(logger, "==============")
+	fmt.Fprintln(logger, "Max Age: ", maxAgeTime.Format("2 Jan 2006 03:04pm"))
 
 	tweetErr := destroyer.Destroy(&data.UserTweets{Twitter: client})
 	if tweetErr != nil {
