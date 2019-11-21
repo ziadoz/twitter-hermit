@@ -7,8 +7,7 @@ require (
 	github.com/dghubble/go-twitter v0.0.0-20190512073027-53f972dc4b06
 	github.com/dghubble/oauth1 v0.5.0
 	github.com/dghubble/sling v1.2.0 // indirect
+	github.com/dustin/go-humanize v1.0.0
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/olekukonko/tablewriter v0.0.2
 	github.com/stretchr/testify v1.3.0 // indirect
-	mvdan.cc/xurls/v2 v2.0.0
 )

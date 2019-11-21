@@ -3,14 +3,12 @@ package hermit
 import (
 	"fmt"
 	"io"
-	"strconv"
 	"time"
 
 	"github.com/ziadoz/twitter-hermit/pkg/data"
 	"github.com/ziadoz/twitter-hermit/pkg/saver"
-	"github.com/ziadoz/twitter-hermit/pkg/util"
 
-	"github.com/olekukonko/tablewriter"
+	"github.com/dustin/go-humanize"
 )
 
 const batchSize = 200
@@ -23,11 +21,6 @@ type Destroyer struct {
 }
 
 func (d *Destroyer) Destroy(repo data.Repository) error {
-	table := tablewriter.NewWriter(d.Output)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.SetHeader([]string{"ID", "Date", "Tweet"})
-
 	var maxID int64
 	var deletedCount int
 
@@ -62,25 +55,12 @@ func (d *Destroyer) Destroy(repo data.Repository) error {
 			}
 		}
 
-		rows := make([][]string, 0, len(filteredTweets))
-		for _, tweet := range filteredTweets {
-			createdAt, _ := tweet.CreatedAtTime()
-			rows = append(rows, []string{
-				strconv.FormatInt(tweet.ID, 10),
-				createdAt.Format("2 Jan 2006 03:04pm"),
-				util.StripNewlines(tweet.Text),
-			})
-		}
-
-		table.AppendBulk(rows)
-
 		deletedCount += len(filteredTweets)
 		maxID = data.GetMaxID(tweets) - 1
 	}
 
 	if deletedCount > 0 {
-		table.SetFooter([]string{"", repo.Description(), strconv.Itoa(deletedCount)})
-		table.Render()
+		fmt.Fprintf(d.Output, "• Deleted %s %s.\n", humanize.Comma(int64(deletedCount)), repo.Description())
 	}
 
 	return nil

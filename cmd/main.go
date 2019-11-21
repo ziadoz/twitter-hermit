@@ -79,17 +79,18 @@ func run() {
 		TweetSaver: saver,
 	}
 
+	fmt.Fprintln(logger, "Twitter Hermit")
+	fmt.Fprintln(logger, "==============")
+
 	tweetErr := destroyer.Destroy(&data.UserTweets{Twitter: client})
 	if tweetErr != nil {
 		log.Fatal(tweetErr)
 	}
-	fmt.Println()
 
 	favouriteErr := destroyer.Destroy(&data.UserFavourites{Twitter: client})
 	if favouriteErr != nil {
 		log.Fatal(favouriteErr)
 	}
-	fmt.Println()
 }
 
 // Get a configured twitter.Client.
