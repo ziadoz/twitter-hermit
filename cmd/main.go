@@ -49,18 +49,22 @@ func run() {
 	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
 	flag.BoolVar(&saveJson, "save-json", true, "Save tweet JSON?")
 	flag.BoolVar(&saveMedia, "save-media", true, "Save tweet media?")
-	flag.BoolVar(&dryRun, "dry-run", false, "Perform a dry run that only outputs a log summary")
+	flag.BoolVar(&dryRun, "dry-run", false, "Perform a dry run")
 	flag.BoolVar(&silent, "silent", false, "Silence all log summary output")
 	flag.Parse()
 
-	if maxAge == "" || strings.IndexRune(maxAge, '-') != 0 {
-		log.Fatal("missing max-age flag")
+	if maxAge == "" {
+		log.Fatal("missing max-age argument")
+	}
+
+	if strings.IndexRune(maxAge, '-') == -1 {
+		log.Fatal("max-age argument must be negative")
 	}
 
 	now := time.Now()
 	maxAgeTime, err := tparse.AddDuration(now, maxAge)
 	if err != nil {
-		log.Fatalf("invalid max age flag: %s\n", err)
+		log.Fatalf("invalid max age argument: %s\n", err)
 	}
 
 	var logger io.Writer

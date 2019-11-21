@@ -4,12 +4,12 @@ Become a social media hermit. A Twitter utility that deletes old tweets, retweet
 # Usage
 You must ensure your [Twitter OAuth credentials](https://developer.twitter.com/apps) are available as environment variables: `TWITTER_CONSUMER_KEY`, `TWITTER_CONSUMER_SECRET`, `TWITTER_ACCESS_TOKEN` and `TWITTER_ACCESS_TOKEN_SECRET`
 
-Download the latest release and ensure the binary is available on your `$PATH` and then run it with the required `--max-age` flag:
+Download the latest release and ensure the binary is available on your `$PATH` and then run it with the required `--max-age` argument:
 ```
 twitter-hermit --max-age="-1month"
 ```
 
-The `--max-age` flag determines how old tweets have to be before they'll be deleted. This string is parsed using the [tparse](https://github.com/karrick/tparse) package, and some examples include: `-1day`, `-2weeks`, `-3months` and `-4years`. You can find more details on the format here: https://github.com/karrick/tparse#addduration
+The `--max-age=[duration]` argument determines how old tweets have to be before they'll be deleted. This string is parsed using the [tparse](https://github.com/karrick/tparse) package, and some examples include: `-1day`, `-2weeks`, `-3months` and `-4years`. You can find more details on the format here: https://github.com/karrick/tparse#addduration
 ```
 twitter-hermit --max-age="-1month"
 ```
@@ -24,7 +24,7 @@ If you don't care about the summary you can use the `--silent` flag to suppress 
 twitter-hermit --max-age="-1month" --silent
 ```
 
-Hermit can also save JSON and media from any tweets into a file before it deletes them with the `--save-dir`, `--save-json` and `--save-media` flags:
+Hermit can also save JSON and media from any tweets into a file before it deletes them with the `--save-dir=[dir]` argument, and the `--save-json` and `--save-media` flags:
 ```
 twitter-hermit --max-age="-1month" --save-dir=./tweets --save-json --save-media
 ```
