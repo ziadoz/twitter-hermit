@@ -8,9 +8,6 @@ import (
 	"regexp"
 	"strconv"
 	"time"
-
-	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/oauth1"
 )
 
 // Get a required environment variable or panic.
@@ -20,14 +17,6 @@ func GetRequiredEnv(name string) string {
 		log.Fatalf("Missing required environment variable %s\n", name)
 	}
 	return val
-}
-
-// Get a configured twitter.Client.
-func GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret string) *twitter.Client {
-	config := oauth1.NewConfig(consumerKey, consumerSecret)
-	token := oauth1.NewToken(accessToken, accessTokenSecret)
-	http := config.Client(oauth1.NoContext, token)
-	return twitter.NewClient(http)
 }
 
 // Parse a max age formatted string into a time.Time.

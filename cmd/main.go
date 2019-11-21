@@ -13,6 +13,9 @@ import (
 	"github.com/ziadoz/twitter-hermit/pkg/pathflag"
 	"github.com/ziadoz/twitter-hermit/pkg/saver"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
+
+	"github.com/dghubble/go-twitter/twitter"
+	"github.com/dghubble/oauth1"
 )
 
 // Development Links
@@ -68,7 +71,7 @@ func run() {
 		SaveMedia: saveMedia,
 	}
 
-	client := util.GetTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+	client := getTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 	destroyer := &hermit.Destroyer{
 		MaxAge:     maxAgeTime,
 		DryRun:     dryRun,
@@ -87,4 +90,12 @@ func run() {
 		log.Fatal(favouriteErr)
 	}
 	fmt.Println()
+}
+
+// Get a configured twitter.Client.
+func getTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret string) *twitter.Client {
+	config := oauth1.NewConfig(consumerKey, consumerSecret)
+	token := oauth1.NewToken(accessToken, accessTokenSecret)
+	http := config.Client(oauth1.NoContext, token)
+	return twitter.NewClient(http)
 }
