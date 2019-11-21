@@ -19,13 +19,13 @@ func extractMedia(tweet twitter.Tweet) []string {
 	}
 
 	links := make([]string, len(tweet.ExtendedEntities.Media))
-	for _, source := range tweet.ExtendedEntities.Media {
+	for i, source := range tweet.ExtendedEntities.Media {
 		switch source.Type {
 		case "photo":
-			links = append(links, source.MediaURLHttps)
+			links[i] = source.MediaURLHttps
 
 		case "animated_gif", "video":
-			links = append(links, source.VideoInfo.Variants[0].URL)
+			links[i] = source.VideoInfo.Variants[0].URL
 		}
 	}
 
