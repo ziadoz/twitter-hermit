@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ziadoz/twitter-hermit/pkg/data"
 	"github.com/ziadoz/twitter-hermit/pkg/saver"
-	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 
 	"github.com/olekukonko/tablewriter"
@@ -22,7 +22,7 @@ type Destroyer struct {
 	TweetSaver *saver.TweetSaver // Handle saving tweet content.
 }
 
-func (d *Destroyer) Destroy(repo twitter.Repository) error {
+func (d *Destroyer) Destroy(repo data.Repository) error {
 	table := tablewriter.NewWriter(d.Output)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetRowLine(true)
@@ -32,7 +32,7 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 	var deletedCount int
 
 	for {
-		tweets, err := repo.Get(twitter.QueryParams{Count: batchSize, MaxID: maxID})
+		tweets, err := repo.Get(data.QueryParams{Count: batchSize, MaxID: maxID})
 		if err != nil {
 			return fmt.Errorf("could not get user %s: %s\n", repo.Description(), err)
 		}
@@ -41,9 +41,9 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 			break
 		}
 
-		filteredTweets := twitter.FilterTweets(tweets, d.MaxAge)
+		filteredTweets := data.FilterTweets(tweets, d.MaxAge)
 		if len(filteredTweets) == 0 {
-			maxID = twitter.GetMaxID(tweets) - 1
+			maxID = data.GetMaxID(tweets) - 1
 			continue
 		}
 
@@ -75,7 +75,7 @@ func (d *Destroyer) Destroy(repo twitter.Repository) error {
 		table.AppendBulk(rows)
 
 		deletedCount += len(filteredTweets)
-		maxID = twitter.GetMaxID(tweets) - 1
+		maxID = data.GetMaxID(tweets) - 1
 	}
 
 	if deletedCount > 0 {

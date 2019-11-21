@@ -8,10 +8,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/ziadoz/twitter-hermit/pkg/data"
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
 	"github.com/ziadoz/twitter-hermit/pkg/pathflag"
 	"github.com/ziadoz/twitter-hermit/pkg/saver"
-	"github.com/ziadoz/twitter-hermit/pkg/twitter"
 	"github.com/ziadoz/twitter-hermit/pkg/util"
 )
 
@@ -76,13 +76,13 @@ func run() {
 		TweetSaver: saver,
 	}
 
-	tweetErr := destroyer.Destroy(&twitter.UserTweets{Twitter: client})
+	tweetErr := destroyer.Destroy(&data.UserTweets{Twitter: client})
 	if tweetErr != nil {
 		log.Fatal(tweetErr)
 	}
 	fmt.Println()
 
-	favouriteErr := destroyer.Destroy(&twitter.UserFavourites{Twitter: client})
+	favouriteErr := destroyer.Destroy(&data.UserFavourites{Twitter: client})
 	if favouriteErr != nil {
 		log.Fatal(favouriteErr)
 	}
