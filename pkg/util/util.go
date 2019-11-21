@@ -7,10 +7,12 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
 // Get a required environment variable or panic.
+// https://blog.antoine-augusti.fr/2015/12/testing-an-os-exit-scenario-in-golang/
 func GetRequiredEnv(name string) string {
 	val := os.Getenv(name)
 	if val == "" {
@@ -50,6 +52,6 @@ func ParseMaxAge(maxAge string) (time.Time, error) {
 
 // Strip any newlines from a string.
 func StripNewlines(s string) string {
-	re := regexp.MustCompile(`(\r|\n|\r\n|\n\r)+`)
-	return re.ReplaceAllString(s, " ")
+	re := regexp.MustCompile(`(\r|\n|\r\n)+`)
+	return strings.Trim(re.ReplaceAllString(s, " "), " ")
 }
