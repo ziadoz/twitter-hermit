@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path"
 	"strconv"
 
@@ -33,6 +34,8 @@ func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 	if ts.SaveMedia && hasMedia(tweet) {
 		num := 1
 		for _, media := range extractMedia(tweet.ExtendedEntities.Media) {
+			log.Fatal(media)
+
 			ext, err := getExtensionFromURL(media)
 			if err != nil {
 				return fmt.Errorf("could not save tweet ID %s media: %s", tweetId, media)

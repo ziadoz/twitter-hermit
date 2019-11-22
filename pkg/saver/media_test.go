@@ -13,13 +13,11 @@ import (
 	"github.com/matryer/is"
 )
 
-// Paths to test files.
 var (
-	fixture = "./fixtures/omg.gif"
-	output  = "./output/omg.gif"
+	fixture string = "./fixtures/omg.gif"
+	output  string = "./output/omg.gif"
 )
 
-// Clean up any old files.
 func init() {
 	os.Remove(output)
 }
@@ -105,7 +103,7 @@ func TestSaveMediaFromURL(t *testing.T) {
 	is.NoErr(err)
 
 	// Compare exact number of bytes.
-	fbytes, err := ioutil.ReadFile(fixture)
-	obytes, err := ioutil.ReadFile(output)
+	fbytes, _ := ioutil.ReadFile(fixture)
+	obytes, _ := ioutil.ReadFile(output)
 	is.True(bytes.Equal(obytes, fbytes))
 }
