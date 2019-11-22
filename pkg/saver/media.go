@@ -1,6 +1,7 @@
 package saver
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,10 +37,15 @@ func extractMedia(tweet twitter.Tweet) []string {
 func getExtensionFromURL(link string) (string, error) {
 	parts, err := url.Parse(link)
 	if err != nil {
-		return "", fmt.Errorf("could not get extension from URL: %s", err)
+		return "", fmt.Errorf("could not parse URL: %s", err)
 	}
 
-	return path.Ext(parts.Path), nil
+	ext := path.Ext(parts.Path)
+	if ext == "" {
+		return "", errors.New("could not get extension from URL")
+	}
+
+	return ext, nil
 }
 
 // Save media file from a URL.

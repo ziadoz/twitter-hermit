@@ -1,4 +1,5 @@
 .DS_Store
 env.sh
 _output/*
+pkg/*/output
 vendor/*
