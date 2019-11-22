@@ -15,7 +15,6 @@ import (
 	"github.com/ziadoz/twitter-hermit/pkg/hermit"
 	"github.com/ziadoz/twitter-hermit/pkg/pathflag"
 	"github.com/ziadoz/twitter-hermit/pkg/saver"
-	"github.com/ziadoz/twitter-hermit/pkg/util"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -40,10 +39,10 @@ var (
 func run() {
 	log.SetFlags(0)
 
-	consumerKey := util.GetRequiredEnv("TWITTER_CONSUMER_KEY")
-	consumerSecret := util.GetRequiredEnv("TWITTER_CONSUMER_SECRET")
-	accessToken := util.GetRequiredEnv("TWITTER_ACCESS_TOKEN")
-	accessTokenSecret := util.GetRequiredEnv("TWITTER_ACCESS_TOKEN_SECRET")
+	consumerKey := getRequiredEnv("TWITTER_CONSUMER_KEY")
+	consumerSecret := getRequiredEnv("TWITTER_CONSUMER_SECRET")
+	accessToken := getRequiredEnv("TWITTER_ACCESS_TOKEN")
+	accessTokenSecret := getRequiredEnv("TWITTER_ACCESS_TOKEN_SECRET")
 
 	flag.StringVar(&maxAge, "max-age", "-1month", "The max age of tweets to keep (e.g. -1day, -2weeks, -3months, -4years)")
 	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
@@ -100,6 +99,16 @@ func run() {
 	if favouriteErr != nil {
 		log.Fatal(favouriteErr)
 	}
+}
+
+// Get a required environment variable or panic.
+// https://blog.antoine-augusti.fr/2015/12/testing-an-os-exit-scenario-in-golang/
+func getRequiredEnv(name string) string {
+	val := os.Getenv(name)
+	if val == "" {
+		log.Fatalf("Missing required environment variable %s\n", name)
+	}
+	return val
 }
 
 // Get a configured twitter.Client.
