@@ -14,13 +14,9 @@ import (
 
 // Extract media links from tweets.
 // https://developer.twitter.com/en/docs/tweets/data-dictionary/overview/extended-entities-object
-func extractMedia(tweet twitter.Tweet) []string {
-	if tweet.ExtendedEntities == nil || len(tweet.ExtendedEntities.Media) == 0 {
-		return []string{}
-	}
-
-	links := make([]string, len(tweet.ExtendedEntities.Media))
-	for i, source := range tweet.ExtendedEntities.Media {
+func extractMedia(media []twitter.MediaEntity) []string {
+	links := make([]string, len(media))
+	for i, source := range media {
 		switch source.Type {
 		case "photo":
 			links[i] = source.MediaURLHttps
@@ -29,7 +25,6 @@ func extractMedia(tweet twitter.Tweet) []string {
 			links[i] = source.VideoInfo.Variants[0].URL
 		}
 	}
-
 	return links
 }
 

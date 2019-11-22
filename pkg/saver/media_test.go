@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dghubble/go-twitter/twitter"
 	"github.com/matryer/is"
 )
 
@@ -23,9 +24,44 @@ func init() {
 	os.Remove(output)
 }
 
+func TextExtractMedia(t *testing.T) {
+	is := is.New(t)
+
+	have := []twitter.MediaEntity{
+		twitter.MediaEntity{
+			MediaURLHttps: "https://www.example.com/path/to/1234567890_foo_bar_baz.jpg",
+			Type:          "photo",
+		},
+		twitter.MediaEntity{
+			MediaURLHttps: "https://www.example.com/path/to/1234567890_foo_bar_baz.mp4",
+			Type:          "video",
+			VideoInfo: twitter.VideoInfo{
+				Variants: []twitter.VideoVariant{
+					twitter.VideoVariant{
+						URL: "https://www.example.com/path/to/1234567890_foo_bar_baz_large.mp4",
+					},
+					twitter.VideoVariant{
+						URL: "https://www.example.com/path/to/1234567890_foo_bar_baz_medium.mp4",
+					},
+					twitter.VideoVariant{
+						URL: "https://www.example.com/path/to/1234567890_foo_bar_baz_small.mp4",
+					},
+				},
+			},
+		},
+	}
+
+	want := []string{
+		"https://www.example.com/path/to/1234567890_foo_bar_baz.jpg",
+		"https://www.example.com/path/to/1234567890_foo_bar_baz_large.mp4",
+	}
+
+	is.Equal(extractMedia(have), want)
+}
+
 func TestGetExtensionFromURL(t *testing.T) {
 	is := is.New(t)
-	ext, err := getExtensionFromURL("http://www.example.com/path/to/1234567890_foo_bar_bar.jpg")
+	ext, err := getExtensionFromURL("http://www.example.com/path/to/1234567890_foo_bar_baz.jpg")
 	is.Equal(ext, ".jpg")
 	is.NoErr(err)
 }

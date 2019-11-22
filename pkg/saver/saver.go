@@ -30,9 +30,9 @@ func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 		}
 	}
 
-	if ts.SaveMedia {
+	if ts.SaveMedia && hasMedia(tweet) {
 		num := 1
-		for _, media := range extractMedia(tweet) {
+		for _, media := range extractMedia(tweet.ExtendedEntities.Media) {
 			ext, err := getExtensionFromURL(media)
 			if err != nil {
 				return fmt.Errorf("could not save tweet ID %s media: %s", tweetId, media)
@@ -44,4 +44,8 @@ func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 	}
 
 	return nil
+}
+
+func hasMedia(tweet twitter.Tweet) bool {
+	return (tweet.ExtendedEntities != nil && len(tweet.ExtendedEntities.Media) > 0)
 }
