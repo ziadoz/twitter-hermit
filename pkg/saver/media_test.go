@@ -1,6 +1,7 @@
 package saver
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -52,5 +53,5 @@ func TestSaveMediaFromURL(t *testing.T) {
 	// Compare exact number of bytes.
 	fbytes, err := ioutil.ReadFile(fixture)
 	obytes, err := ioutil.ReadFile(output)
-	is.Equal(obytes, fbytes)
+	is.True(bytes.Equal(obytes, fbytes))
 }
