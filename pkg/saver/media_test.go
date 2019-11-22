@@ -49,11 +49,29 @@ func TextExtractMedia(t *testing.T) {
 				},
 			},
 		},
+		twitter.MediaEntity{
+			MediaURLHttps: "https://www.example.com/path/to/1234567890_foo_bar_baz.gif",
+			Type:          "animated_gif",
+			VideoInfo: twitter.VideoInfo{
+				Variants: []twitter.VideoVariant{
+					twitter.VideoVariant{
+						URL: "https://www.example.com/path/to/1234567890_foo_bar_baz_large.gif",
+					},
+					twitter.VideoVariant{
+						URL: "https://www.example.com/path/to/1234567890_foo_bar_baz_medium.gif",
+					},
+					twitter.VideoVariant{
+						URL: "https://www.example.com/path/to/1234567890_foo_bar_baz_small.gif",
+					},
+				},
+			},
+		},
 	}
 
 	want := []string{
 		"https://www.example.com/path/to/1234567890_foo_bar_baz.jpg",
 		"https://www.example.com/path/to/1234567890_foo_bar_baz_large.mp4",
+		"https://www.example.com/path/to/1234567890_foo_bar_baz.gif",
 	}
 
 	is.Equal(extractMedia(have), want)
