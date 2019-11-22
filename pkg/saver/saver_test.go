@@ -29,7 +29,9 @@ func TestTweetSaverSaveJson(t *testing.T) {
 		SaveDir:  "./output",
 		SaveJson: true,
 	}
-	ts.Save(tweet)
+
+	err := ts.Save(tweet)
+	is.NoErr(err)
 
 	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890.json")
 	obytes, _ := ioutil.ReadFile("./output/1234567890.json")
