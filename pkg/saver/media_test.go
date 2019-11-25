@@ -69,7 +69,7 @@ func TextExtractMedia(t *testing.T) {
 	want := []string{
 		"https://www.example.com/path/to/1234567890_foo_bar_baz.jpg",
 		"https://www.example.com/path/to/1234567890_foo_bar_baz_large.mp4",
-		"https://www.example.com/path/to/1234567890_foo_bar_baz.gif",
+		"https://www.example.com/path/to/1234567890_foo_bar_baz_large.gif",
 	}
 
 	is.Equal(extractMedia(have), want)
