@@ -95,7 +95,7 @@ func (f *UserFavourites) Destroy(favourites []twitter.Tweet) error {
 
 // Filter out tweets that are newer than the max age time.Time.
 func FilterTweets(tweets []twitter.Tweet, maxAge time.Time) []twitter.Tweet {
-	var filtered = make([]twitter.Tweet, 0)
+	filtered := []twitter.Tweet{}
 
 	for _, tweet := range tweets {
 		createdAt, _ := tweet.CreatedAtTime()
