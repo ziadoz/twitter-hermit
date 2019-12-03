@@ -2,7 +2,6 @@ package data
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -86,7 +85,7 @@ func (f *UserFavourites) Destroy(favourites []twitter.Tweet) error {
 		})
 
 		if err != nil {
-			log.Printf("Error: Failed to delete favourite %s", err)
+			return fmt.Errorf("failed to delete favourite %s", err)
 		}
 	}
 
