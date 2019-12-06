@@ -24,9 +24,9 @@ If you don't care about the summary you can use the `--silent` flag to suppress 
 twitter-hermit --max-age="-1month" --silent
 ```
 
-Hermit can also save JSON and media from any tweets into a file before it deletes them with the `--save-dir=[dir]` argument, and the `--save-json` and `--save-media` flags:
+Hermit can also save JSON, media and links from any tweets into a file before it deletes them with the `--save-dir=[dir]` argument, and the `--save-json`, `--save-media` and `--save-links` flags:
 ```
-twitter-hermit --max-age="-1month" --save-dir=./tweets --save-json --save-media
+twitter-hermit --max-age="-1month" --save-dir=./tweets --save-json --save-media --save-links
 ```
 
 For convience a `env.sh.sample` file is provided. You should rename this to `env.sh`, enter your credentials into it, specify your preferred flags, and then run it: `./env.sh`
