@@ -34,6 +34,7 @@ var (
 	saveDir   pathflag.Path
 	saveJson  bool
 	saveMedia bool
+	saveLinks bool
 )
 
 func run() {
@@ -46,8 +47,9 @@ func run() {
 
 	flag.StringVar(&maxAge, "max-age", "-1month", "The max age of tweets to keep (e.g. -1day, -2weeks, -3months, -4years)")
 	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
-	flag.BoolVar(&saveJson, "save-json", true, "Save tweet JSON?")
-	flag.BoolVar(&saveMedia, "save-media", true, "Save tweet media?")
+	flag.BoolVar(&saveJson, "save-json", false, "Save tweet JSON?")
+	flag.BoolVar(&saveMedia, "save-media", false, "Save tweet media?")
+	flag.BoolVar(&saveLinks, "save-links", false, "Save tweet links?")
 	flag.BoolVar(&dryRun, "dry-run", false, "Perform a dry run")
 	flag.BoolVar(&silent, "silent", false, "Silence all log summary output")
 	flag.Parse()
@@ -76,6 +78,7 @@ func run() {
 		SaveDir:   saveDir.Path,
 		SaveJson:  saveJson,
 		SaveMedia: saveMedia,
+		SaveLinks: saveLinks,
 	}
 
 	client := getTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)

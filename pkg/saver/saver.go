@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/dghubble/go-twitter/twitter"
 )
@@ -14,6 +15,7 @@ type TweetSaver struct {
 	SaveDir   string
 	SaveJson  bool
 	SaveMedia bool
+	SaveLinks bool
 }
 
 func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
@@ -25,6 +27,12 @@ func (ts *TweetSaver) Save(tweet twitter.Tweet) error {
 
 	if ts.SaveMedia && hasMedia(tweet) {
 		if err := ts.saveMedia(tweet); err != nil {
+			return err
+		}
+	}
+
+	if ts.SaveLinks && hasLinks(tweet) {
+		if err := ts.saveLinks(tweet); err != nil {
 			return err
 		}
 	}
@@ -65,5 +73,26 @@ func (ts *TweetSaver) saveMedia(tweet twitter.Tweet) error {
 }
 
 func hasMedia(tweet twitter.Tweet) bool {
-	return (tweet.ExtendedEntities != nil && len(tweet.ExtendedEntities.Media) > 0)
+	return tweet.ExtendedEntities != nil && len(tweet.ExtendedEntities.Media) > 0
 }
+
+func (ts *TweetSaver) saveLinks(tweet twitter.Tweet) error {
+	tweetId := strconv.FormatInt(tweet.ID, 10)
+
+	links := make([]string, len(tweet.Entities.Urls))
+	for i, url := range tweet.Entities.Urls {
+		links[i] = url.ExpandedURL
+	}
+
+	bytes := []byte(strings.Join(links, "\n"))
+	if err := ioutil.WriteFile(path.Join(ts.SaveDir, tweetId+"_links.txt"), bytes, 0644); err != nil {
+		return fmt.Errorf("could not write JSON file: %s", err)
+	}
+
+	return nil
+}
+
+func hasLinks(tweet twitter.Tweet) bool {
+	return tweet.Entities != nil && tweet.Entities.Urls != nil && len(tweet.Entities.Urls) > 0
+}
+

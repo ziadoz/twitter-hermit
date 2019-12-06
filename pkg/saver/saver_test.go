@@ -16,6 +16,8 @@ var tweetId int64 = 1234567890
 
 func init() {
 	os.Remove("./output/1234567890.json")
+	os.Remove("./output/1234567890-1.gif")
+	os.Remove("./output/1234567890_links.txt")
 }
 
 func TestTweetSaverSaveJson(t *testing.T) {
@@ -48,7 +50,7 @@ func TestTweetSaverSaveMedia(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	url := ts.URL + "/omg.gif" // Add filename to URL.
+	url := ts.URL + "/omg.gif" // Add filename and extension to URL.
 	tweet := twitter.Tweet{
 		ID:        tweetId,
 		CreatedAt: "2019-01-01 01:01:01",
@@ -77,4 +79,34 @@ func TestTweetSaverSaveMedia(t *testing.T) {
 
 	err := saver.Save(tweet)
 	is.NoErr(err)
+}
+
+func TestTweetSaverSaveLinks(t *testing.T) {
+	is := is.New(t)
+
+	tweet := twitter.Tweet{
+		ID: tweetId,
+		Entities: &twitter.Entities{
+			Urls: []twitter.URLEntity{
+				{
+					ExpandedURL: "http://www.example1.com",
+				},
+				{
+					ExpandedURL: "http://www.example2.com",
+				},
+			},
+		},
+	}
+
+	saver := TweetSaver{
+		SaveDir:   "./output",
+		SaveLinks: true,
+	}
+
+	err := saver.Save(tweet)
+	is.NoErr(err)
+
+	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890_links.txt")
+	obytes, _ := ioutil.ReadFile("./output/1234567890_links.txt")
+	is.True(bytes.Equal(fbytes, obytes))
 }
