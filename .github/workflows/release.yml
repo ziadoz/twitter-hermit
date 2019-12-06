@@ -10,8 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     #needs: [ test ]
     steps:
-    - name: Check out code
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go_version: '1.13.4'
+    - name: Checkout code
       uses: actions/checkout@master
+    - name: Run tests
+      run: go test -v ./...
     - name: goreleaser
       uses: docker://goreleaser/goreleaser
       env:

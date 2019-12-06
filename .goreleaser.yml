@@ -2,7 +2,6 @@
 # Make sure to check the documentation at http://goreleaser.com
 before:
   hooks:
-    - CGO_ENABLED=0 go test ./...
     - go mod tidy
     - go generate ./...
 builds:
