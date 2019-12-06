@@ -80,6 +80,7 @@ func run() {
 
 	client := getTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 	destroyer := &hermit.Destroyer{
+		BatchSize:  hermit.DefaultBatchSize,
 		MaxAge:     maxAgeTime,
 		DryRun:     dryRun,
 		Output:     logger,
