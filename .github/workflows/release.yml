@@ -10,14 +10,15 @@ jobs:
     env:
       GO111MODULE: on
     runs-on: ubuntu-latest
-      - name: install go
-        uses: actions/setup-go@v1
-        with:
-          go_version: '1.13.4'
-      - name: checkout code
-        uses: actions/checkout@master
-      - name: run tests
-        run: go test -v ./...
+    steps:
+    - name: install go
+      uses: actions/setup-go@v1
+      with:
+        go_version: '1.13.4'
+    - name: checkout code
+      uses: actions/checkout@master
+    - name: run tests
+      run: go test -v ./...
   release:
     name: release
     runs-on: ubuntu-latest
