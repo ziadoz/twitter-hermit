@@ -92,17 +92,14 @@ func TestGetExtensionFromURLNoExtension(t *testing.T) {
 func TestSaveMediaFromURL(t *testing.T) {
 	is := is.New(t)
 
-	// Test web server that serves up fixture.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, fixture)
 	}))
 	defer ts.Close()
 
-	// Compare byte sizes.
 	_, err := saveMediaFromURL(ts.URL, output)
 	is.NoErr(err)
 
-	// Compare exact number of bytes.
 	fbytes, _ := ioutil.ReadFile(fixture)
 	obytes, _ := ioutil.ReadFile(output)
 	is.True(bytes.Equal(obytes, fbytes))
