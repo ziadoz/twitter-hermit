@@ -25,8 +25,7 @@ var tweets = []twitter.Tweet{
 
 func TestFilterTweets(t *testing.T) {
 	is := is.New(t)
-	maxAge, err := time.Parse(time.RubyDate, "Wed Jan 02 02:02:02 -0000 2019")
-	is.NoErr(err)
+	maxAge, _ := time.Parse(time.RubyDate, "Wed Jan 02 02:02:02 -0000 2019")
 	is.Equal([]twitter.Tweet{tweets[0]}, FilterTweets(tweets, maxAge))
 }
 
