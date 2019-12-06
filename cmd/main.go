@@ -27,7 +27,19 @@ func main() {
 	run()
 }
 
+var usage = `Twitter Hermit is a utility that delete your old tweets and favourites and turns you into a social media hermit.
+
+Usage: twitter-hermit --max-age=<duration> [--save-dir=<path>] [--save-json] [--save-media] [--save-links] [--dry-run] [--silent]
+       twitter-hermit --help
+       twitter-hermit --version`
+
 var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+
+	help      bool
+	ver       bool
 	maxAge    string
 	dryRun    bool
 	silent    bool
@@ -40,11 +52,8 @@ var (
 func run() {
 	log.SetFlags(0)
 
-	consumerKey := getRequiredEnv("TWITTER_CONSUMER_KEY")
-	consumerSecret := getRequiredEnv("TWITTER_CONSUMER_SECRET")
-	accessToken := getRequiredEnv("TWITTER_ACCESS_TOKEN")
-	accessTokenSecret := getRequiredEnv("TWITTER_ACCESS_TOKEN_SECRET")
-
+	flag.BoolVar(&ver, "version", false, "Show version")
+	flag.BoolVar(&help, "help", false, "Show help")
 	flag.StringVar(&maxAge, "max-age", "-1month", "The max age of tweets to keep (e.g. -1day, -2weeks, -3months, -4years)")
 	flag.Var(&saveDir, "save-dir", "Directory to save tweet content to")
 	flag.BoolVar(&saveJson, "save-json", false, "Save tweet JSON?")
@@ -53,6 +62,21 @@ func run() {
 	flag.BoolVar(&dryRun, "dry-run", false, "Perform a dry run")
 	flag.BoolVar(&silent, "silent", false, "Silence all log summary output")
 	flag.Parse()
+
+	if help {
+		fmt.Println(usage)
+		os.Exit(0)
+	}
+
+	if ver {
+		fmt.Printf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date)
+		os.Exit(0)
+	}
+
+	consumerKey := getRequiredEnv("TWITTER_CONSUMER_KEY")
+	consumerSecret := getRequiredEnv("TWITTER_CONSUMER_SECRET")
+	accessToken := getRequiredEnv("TWITTER_ACCESS_TOKEN")
+	accessTokenSecret := getRequiredEnv("TWITTER_ACCESS_TOKEN_SECRET")
 
 	if maxAge == "" {
 		log.Fatal("missing max-age argument")
