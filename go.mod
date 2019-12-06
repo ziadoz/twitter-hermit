@@ -8,6 +8,7 @@ require (
 	github.com/dghubble/oauth1 v0.5.0
 	github.com/dghubble/sling v1.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.0
+	github.com/etdub/goparsetime v0.0.0-20160315173935-ea17b0ac3318 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/karrick/tparse v2.4.2+incompatible
 	github.com/matryer/is v1.2.0
