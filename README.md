@@ -1,4 +1,4 @@
-# Twitter Hermit
+# Twitter Hermit ![](https://github.com/ziadoz/twitter-hermit/workflows/GoReleaser/badge.svg)
 Become a social media hermit. A Twitter utility that deletes old tweets, retweets and favourites.
 
 # Usage
