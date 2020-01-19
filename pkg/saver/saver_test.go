@@ -17,7 +17,7 @@ var tweetId int64 = 1234567890
 func init() {
 	os.Remove("./output/1234567890.json")
 	os.Remove("./output/1234567890-1.gif")
-	os.Remove("./output/1234567890_links.txt")
+	os.Remove("./output/links.txt")
 }
 
 func TestTweetSaverSaveJson(t *testing.T) {
