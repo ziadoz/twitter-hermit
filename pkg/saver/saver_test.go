@@ -15,9 +15,16 @@ import (
 var tweetId int64 = 1234567890
 
 func init() {
-	os.Remove("./output/1234567890.json")
-	os.Remove("./output/1234567890-1.gif")
-	os.Remove("./output/links.txt")
+	files := []string{
+		"./output/1234567890.json",
+		"./output/1234567890-1.gif",
+		"./output/links.txt",
+		"./output/omg.gif",
+	}
+
+	for _, file := range files {
+		os.Remove(file)
+	}
 }
 
 func TestTweetSaverSaveJson(t *testing.T) {
@@ -37,8 +44,8 @@ func TestTweetSaverSaveJson(t *testing.T) {
 	err := ts.Save([]twitter.Tweet{tweet})
 	is.NoErr(err)
 
-	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890.json")
-	obytes, _ := ioutil.ReadFile("./output/1234567890.json")
+	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890/tweet.json")
+	obytes, _ := ioutil.ReadFile("./output/1234567890/tweet.json")
 	is.True(bytes.Equal(fbytes, obytes))
 }
 
@@ -79,6 +86,10 @@ func TestTweetSaverSaveMedia(t *testing.T) {
 
 	err := saver.Save([]twitter.Tweet{tweet})
 	is.NoErr(err)
+
+	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890/media-1.gif")
+	obytes, _ := ioutil.ReadFile("./output/1234567890/media-1.gif")
+	is.True(bytes.Equal(fbytes, obytes))
 }
 
 func TestTweetSaverSaveLinks(t *testing.T) {

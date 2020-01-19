@@ -33,26 +33,24 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 	}
 
 	for _, tweet := range tweets {
-		if ts.SaveJson || ts.SaveMedia {
+		if ts.SaveJson {
 			tweetDir := path.Join(ts.SaveDir, strconv.FormatInt(tweet.ID, 10))
 			if err := makeDir(tweetDir); err != nil {
 				return err
 			}
-		}
 
-		if ts.SaveJson {
-			if err := ts.saveJson(tweet); err != nil {
+			if err := ts.saveJson(tweetDir, tweet); err != nil {
 				return err
 			}
 		}
 
 		if ts.SaveMedia && hasMedia(tweet) {
-			dest := path.Join(ts.SaveDir, strconv.FormatInt(tweet.ID, 10))
-			if err := makeDir(dest); err != nil {
+			tweetDir := path.Join(ts.SaveDir, strconv.FormatInt(tweet.ID, 10))
+			if err := makeDir(tweetDir); err != nil {
 				return err
 			}
 
-			if err := ts.saveMedia(tweet); err != nil {
+			if err := ts.saveMedia(tweetDir, tweet); err != nil {
 				return err
 			}
 		}
@@ -67,32 +65,28 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 	return nil
 }
 
-func (ts *TweetSaver) saveJson(tweet twitter.Tweet) error {
-	tweetId := strconv.FormatInt(tweet.ID, 10)
-
+func (ts *TweetSaver) saveJson(dest string, tweet twitter.Tweet) error {
 	bytes, err := json.MarshalIndent(tweet, "", "    ")
 	if err != nil {
 		return fmt.Errorf("could not marshal tweet JSON: %s", err)
 	}
 
-	if err := ioutil.WriteFile(path.Join(ts.SaveDir, tweetId+".json"), bytes, 0644); err != nil {
+	if err := ioutil.WriteFile(path.Join(dest, "tweet.json"), bytes, 0755); err != nil {
 		return fmt.Errorf("could not write JSON file: %s", err)
 	}
 
 	return nil
 }
 
-func (ts *TweetSaver) saveMedia(tweet twitter.Tweet) error {
-	tweetId := strconv.FormatInt(tweet.ID, 10)
-
+func (ts *TweetSaver) saveMedia(dest string, tweet twitter.Tweet) error {
 	num := 1
 	for _, media := range extractMedia(tweet.ExtendedEntities.Media) {
 		ext, err := getExtensionFromURL(media)
 		if err != nil {
-			return fmt.Errorf("could not save tweet ID %s media: %s", tweetId, media)
+			return fmt.Errorf("could not save tweet media: %s", media)
 		}
 
-		saveMediaFromURL(media, path.Join(ts.SaveDir, tweetId+"-"+strconv.Itoa(num)+ext))
+		saveMediaFromURL(media, path.Join(dest, "media-"+strconv.Itoa(num)+ext))
 		num++
 	}
 
@@ -125,7 +119,7 @@ func makeDir(dest string) error {
 		return nil
 	}
 
-	if err := os.MkdirAll(dest, 0644); err != nil {
+	if err := os.MkdirAll(dest, 0755); err != nil {
 		return fmt.Errorf("could not make output directory: %s", err)
 	}
 
@@ -133,7 +127,7 @@ func makeDir(dest string) error {
 }
 
 func makeLinks(dest string) (*os.File, error) {
-	file, err := os.OpenFile(dest, os.O_CREATE|os.O_APPEND|os.O_TRUNC|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(dest, os.O_CREATE|os.O_APPEND|os.O_TRUNC|os.O_WRONLY, 0755)
 	if err != nil {
 		return nil, fmt.Errorf("could not create links file: %s", err)
 	}
