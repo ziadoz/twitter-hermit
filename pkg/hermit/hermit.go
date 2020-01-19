@@ -42,10 +42,8 @@ func (d *Destroyer) Destroy(repo data.Repository) error {
 		}
 
 		if d.TweetSaver != nil {
-			for _, tweet := range filteredTweets {
-				if err := d.TweetSaver.Save(tweet); err != nil {
-					return fmt.Errorf("could not save tweet '%d' content: %s", tweet.ID, err)
-				}
+			if err := d.TweetSaver.Save(filteredTweets); err != nil {
+				return fmt.Errorf("could not save tweet content: %s", err)
 			}
 		}
 
