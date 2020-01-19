@@ -34,7 +34,7 @@ func TestTweetSaverSaveJson(t *testing.T) {
 		SaveJson: true,
 	}
 
-	err := ts.Save(tweet)
+	err := ts.Save([]twitter.Tweet{tweet})
 	is.NoErr(err)
 
 	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890.json")
@@ -77,7 +77,7 @@ func TestTweetSaverSaveMedia(t *testing.T) {
 		SaveMedia: true,
 	}
 
-	err := saver.Save(tweet)
+	err := saver.Save([]twitter.Tweet{tweet})
 	is.NoErr(err)
 }
 
@@ -103,10 +103,10 @@ func TestTweetSaverSaveLinks(t *testing.T) {
 		SaveLinks: true,
 	}
 
-	err := saver.Save(tweet)
+	err := saver.Save([]twitter.Tweet{tweet})
 	is.NoErr(err)
 
-	fbytes, _ := ioutil.ReadFile("./fixtures/1234567890_links.txt")
-	obytes, _ := ioutil.ReadFile("./output/1234567890_links.txt")
+	fbytes, _ := ioutil.ReadFile("./fixtures/links.txt")
+	obytes, _ := ioutil.ReadFile("./output/links.txt")
 	is.True(bytes.Equal(fbytes, obytes))
 }
