@@ -16,8 +16,8 @@ var tweetId int64 = 1234567890
 
 func init() {
 	files := []string{
-		"./output/1234567890.json",
-		"./output/1234567890-1.gif",
+		"./output/1234567890/tweet.json",
+		"./output/1234567890/media-1.gif",
 		"./output/links.txt",
 		"./output/omg.gif",
 	}
