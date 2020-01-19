@@ -70,8 +70,10 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 		}
 	}
 
-	if err := eg.Wait(); err != nil {
-		return err
+	if ts.SaveJson || ts.SaveMedia {
+		if err := eg.Wait(); err != nil {
+			return err
+		}
 	}
 
 	return nil
