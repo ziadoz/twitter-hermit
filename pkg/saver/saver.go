@@ -71,7 +71,7 @@ func (ts *TweetSaver) saveJson(dest string, tweet twitter.Tweet) error {
 		return fmt.Errorf("could not marshal tweet JSON: %s", err)
 	}
 
-	if err := ioutil.WriteFile(path.Join(dest, "tweet.json"), bytes, 0755); err != nil {
+	if err := ioutil.WriteFile(path.Join(dest, "tweet.json"), bytes, 0744); err != nil {
 		return fmt.Errorf("could not write JSON file: %s", err)
 	}
 
@@ -119,7 +119,7 @@ func makeDir(dest string) error {
 		return nil
 	}
 
-	if err := os.MkdirAll(dest, 0755); err != nil {
+	if err := os.MkdirAll(dest, 0744); err != nil {
 		return fmt.Errorf("could not make output directory: %s", err)
 	}
 
@@ -127,7 +127,7 @@ func makeDir(dest string) error {
 }
 
 func makeLinks(dest string) (*os.File, error) {
-	file, err := os.OpenFile(dest, os.O_CREATE|os.O_APPEND|os.O_TRUNC|os.O_WRONLY, 0755)
+	file, err := os.OpenFile(dest, os.O_CREATE|os.O_APPEND|os.O_TRUNC|os.O_WRONLY, 0744)
 	if err != nil {
 		return nil, fmt.Errorf("could not create links file: %s", err)
 	}
