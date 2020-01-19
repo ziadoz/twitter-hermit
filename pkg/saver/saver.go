@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/dghubble/go-twitter/twitter"
 )
 
@@ -32,6 +34,8 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 		linksFile = file
 	}
 
+	var eg errgroup.Group
+
 	for _, tweet := range tweets {
 		if ts.SaveJson {
 			tweetDir := path.Join(ts.SaveDir, strconv.FormatInt(tweet.ID, 10))
@@ -39,9 +43,11 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 				return err
 			}
 
-			if err := ts.saveJson(tweetDir, tweet); err != nil {
-				return err
-			}
+			dest := tweetDir
+			twt := tweet
+			eg.Go(func() error {
+				return ts.saveJson(dest, twt)
+			})
 		}
 
 		if ts.SaveMedia && hasMedia(tweet) {
@@ -50,9 +56,11 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 				return err
 			}
 
-			if err := ts.saveMedia(tweetDir, tweet); err != nil {
-				return err
-			}
+			dest := tweetDir
+			twt := tweet
+			eg.Go(func() error {
+				return ts.saveMedia(dest, twt)
+			})
 		}
 
 		if ts.SaveLinks && hasLinks(tweet) {
@@ -60,6 +68,10 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 				return err
 			}
 		}
+	}
+
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	return nil

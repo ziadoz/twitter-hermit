@@ -13,4 +13,5 @@ require (
 	github.com/karrick/tparse v2.4.2+incompatible
 	github.com/matryer/is v1.2.0
 	github.com/stretchr/testify v1.3.0 // indirect
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 )
