@@ -7,7 +7,7 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
+	"sync"
 
 	"golang.org/x/sync/errgroup"
 
@@ -22,19 +22,9 @@ type TweetSaver struct {
 }
 
 func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
-	var linksFile *os.File
-	defer linksFile.Close()
-
-	if ts.SaveLinks {
-		file, err := makeLinks(path.Join(ts.SaveDir, "links.txt"))
-		if err != nil {
-			return err
-		}
-
-		linksFile = file
-	}
-
 	var eg errgroup.Group
+	var wg sync.WaitGroup
+	links := make(chan string)
 
 	for _, tweet := range tweets {
 		if ts.SaveJson {
@@ -64,15 +54,31 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 		}
 
 		if ts.SaveLinks && hasLinks(tweet) {
-			if err := ts.saveLinks(linksFile, tweet); err != nil {
-				return err
-			}
+			wg.Add(1)
+			go ts.saveLinks(links, &wg, tweet)
 		}
 	}
 
 	if ts.SaveJson || ts.SaveMedia {
 		if err := eg.Wait(); err != nil {
 			return err
+		}
+	}
+
+	if ts.SaveLinks {
+		go func() {
+			wg.Wait()
+			close(links)
+		}()
+
+		file, err := makeLinks(path.Join(ts.SaveDir, "links.txt"))
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		for link := range links {
+			file.WriteString(link + "\n")
 		}
 	}
 
@@ -111,17 +117,11 @@ func hasMedia(tweet twitter.Tweet) bool {
 	return tweet.ExtendedEntities != nil && len(tweet.ExtendedEntities.Media) > 0
 }
 
-func (ts *TweetSaver) saveLinks(file *os.File, tweet twitter.Tweet) error {
-	links := make([]string, len(tweet.Entities.Urls))
-	for i, url := range tweet.Entities.Urls {
-		links[i] = url.ExpandedURL
+func (ts *TweetSaver) saveLinks(links chan<- string, wg *sync.WaitGroup, tweet twitter.Tweet) {
+	defer wg.Done()
+	for _, url := range tweet.Entities.Urls {
+		links <- url.ExpandedURL
 	}
-
-	if _, err := file.WriteString(strings.Join(links, "\n") + "\n"); err != nil {
-		return fmt.Errorf("could not save links: %s", err)
-	}
-
-	return nil
 }
 
 func hasLinks(tweet twitter.Tweet) bool {
