@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -19,6 +20,7 @@ type TweetSaver struct {
 	SaveJson  bool
 	SaveMedia bool
 	SaveLinks bool
+	LinksFile *os.File
 }
 
 func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
@@ -71,14 +73,13 @@ func (ts *TweetSaver) Save(tweets []twitter.Tweet) error {
 			close(links)
 		}()
 
-		file, err := makeLinks(path.Join(ts.SaveDir, "links.txt"))
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
+		var sb strings.Builder
 		for link := range links {
-			file.WriteString(link + "\n")
+			sb.WriteString(link + "\n")
+		}
+
+		if _, err := ts.LinksFile.WriteString(sb.String()); err != nil {
+			return fmt.Errorf("could not save links: %s", err)
 		}
 	}
 
@@ -138,13 +139,4 @@ func makeDir(dest string) error {
 	}
 
 	return nil
-}
-
-func makeLinks(dest string) (*os.File, error) {
-	file, err := os.OpenFile(dest, os.O_CREATE|os.O_APPEND|os.O_TRUNC|os.O_WRONLY, 0744)
-	if err != nil {
-		return nil, fmt.Errorf("could not create links file: %s", err)
-	}
-
-	return file, nil
 }

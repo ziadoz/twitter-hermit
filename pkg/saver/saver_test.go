@@ -109,12 +109,16 @@ func TestTweetSaverSaveLinks(t *testing.T) {
 		},
 	}
 
+	file, err := os.OpenFile("./output/links.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0744)
+	is.NoErr(err)
+
 	saver := TweetSaver{
 		SaveDir:   "./output",
 		SaveLinks: true,
+		LinksFile: file,
 	}
 
-	err := saver.Save([]twitter.Tweet{tweet})
+	err = saver.Save([]twitter.Tweet{tweet})
 	is.NoErr(err)
 
 	fbytes, _ := ioutil.ReadFile("./fixtures/links.txt")

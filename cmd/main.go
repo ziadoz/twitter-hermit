@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -98,11 +99,22 @@ func run() {
 		logger = ioutil.Discard
 	}
 
+	var linksFile *os.File
+	if saveLinks {
+		linksFile, err = os.Create(path.Join(saveDir.Path, "links.txt"))
+		if err != nil {
+			log.Fatalf("could not create links file: %s", err)
+		}
+		defer linksFile.Close()
+		fmt.Printf("%+v\n", linksFile)
+	}
+
 	saver := &saver.TweetSaver{
 		SaveDir:   saveDir.Path,
 		SaveJson:  saveJson,
 		SaveMedia: saveMedia,
 		SaveLinks: saveLinks,
+		LinksFile: linksFile,
 	}
 
 	client := getTwitterClient(consumerKey, consumerSecret, accessToken, accessTokenSecret)
